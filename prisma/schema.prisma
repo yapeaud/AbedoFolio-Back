@@ -1,7 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// ============================================================
+// Prisma Schema - Création d'un CV MVP
+// PostgreSQL 
+// ============================================================
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +10,361 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum ResumeTemplate {
+  CLASSIC
+  MODERN
+  CREATIVE
+}
+
+enum FontSize {
+  SMALL
+  NORMAL
+  LARGE
+}
+
+enum Spacing {
+  COMPACT
+  NORMAL
+  SPACIOUS
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum LanguageLevel {
+  BEGINNER
+  INTERMEDIATE
+  FLUENT
+  BILINGUAL
+  NATIVE
+}
+
+// ============================================================
+// USER
+// ============================================================
+
+model User {
+  id        Int      @id @default(autoincrement())
+  userId String @unique @default(uuid()) @db.Uuid
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resumes Resume[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// ============================================================
+// RESUME
+// ============================================================
+
+model Resume {
+  id Int @id @default(autoincrement())
+  resumeId String @unique @default(uuid()) @db.Uuid
+
+  userId String @db.Uuid
+  title String @default("Mon CV")
+
+  template ResumeTemplate @default(CLASSIC)
+  primaryColor String @default("#2563EB")
+  fontFamily String @default("Inter")
+  fontSize FontSize @default(NORMAL)
+  spacing Spacing @default(NORMAL)
+
+  summary String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  personalInfo PersonalInfo? 
+  experiences Experience[]
+  educations Education[]
+  skills Skill[] 
+  languages Language[] 
+  projects Project[] 
+  certifications Certification[] 
+  interests Interest[] 
+  references ResumeReference[]
+
+  @@index([userId])
+  @@index([updatedAt])
+  @@map("resumes")
+}
+
+// ============================================================
+// PERSONAL INFORMATION
+// ============================================================
+model PersonalInfo {
+  id Int @id @default(autoincrement())
+  personalInfoId String @unique @default(uuid()) @db.Uuid
+
+  resumeId String @unique @db.Uuid
+
+  firstName String
+  lastName String
+  jobTitle String?
+
+  email String?
+  phone String?
+  city String?
+  country String?
+
+  website String?
+  linkedin String?
+  github String?
+
+  photo String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resume Resume @relation(fields: [resumeId], references: [resumeId], onDelete: Cascade)
+
+  @@map("personal_info")
+}
+
+// ============================================================
+// PROFESSIONAL EXPERIENCE
+// ============================================================
+
+model Experience {
+  id Int @id @default(autoincrement())
+  experienceId String @unique @default(uuid()) @db.Uuid
+
+  resumeId String @db.Uuid
+
+  position String
+  company String
+  city String?
+
+  startDate DateTime
+  endDate DateTime?
+  current Boolean @default(false)
+
+  description String? @db.Text
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resume Resume @relation(fields: [resumeId], references: [resumeId], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@index([order])
+  @@map("experiences")
+}
+
+// ============================================================
+// EDUCATION
+// ============================================================
+
+model Education{
+  id Int @id @default(autoincrement())
+  educationId String @unique @default(uuid()) @db.Uuid
+
+  resumeId String @db.Uuid
+
+  degree String
+  school String
+  city String?
+
+  startDate DateTime
+  endDate DateTime?
+
+  description String? @db.Text
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resume Resume @relation(fields: [resumeId], references: [resumeId], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@index([order])
+  @@map("educations")
+}
+
+// ============================================================
+// SKILLS
+// ============================================================
+
+model Skill {
+  id Int @id @default(autoincrement())
+  skillId String @unique @default(uuid()) @db.Uuid
+
+  resumeId String @db.Uuid
+
+  name String
+  level SkillLevel @default(INTERMEDIATE)
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resume Resume @relation(fields: [resumeId], references: [resumeId], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@index([order])
+  @@map("skills")
+}
+
+// ============================================================
+// LANGUAGES
+// ============================================================
+
+model Language{
+  id Int @id @default(autoincrement())
+  languageId String @unique @default(uuid()) @db.Uuid
+
+  resumeId String @db.Uuid
+
+  name String
+  level LanguageLevel @default(INTERMEDIATE)
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resume Resume @relation(fields: [resumeId], references: [resumeId], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@index([order])
+  @@map("languages")
+}
+
+// ============================================================
+// PROJECTS
+// ============================================================
+model Project {
+  id Int @id @default(autoincrement())
+  projectId String @unique @default(uuid()) @db.Uuid
+
+  resumeId String @db.Uuid
+
+  name String
+  description String? @db.Text
+  technologies String? @db.Text
+  url String?
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resume Resume @relation(fields: [resumeId], references: [resumeId], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@index([order])
+  @@map("projects")
+}
+
+// ============================================================
+// CERTIFICATIONS
+// ============================================================
+model Certification {
+  id Int @id @default(autoincrement())
+  certificationId String @unique @default(uuid()) @db.Uuid
+
+  resumeId String @db.Uuid
+
+  name String
+  organization String
+  date DateTime
+  url String?
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resume Resume @relation(fields: [resumeId], references: [resumeId], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@index([order])
+  @@map("certifications")
+}
+
+// ============================================================
+// INTERESTS
+// ============================================================
+model Interest {
+  id Int @id @default(autoincrement())
+  interestId String @unique @default(uuid()) @db.Uuid
+
+  resumeId String @db.Uuid
+
+  name String
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resume Resume @relation(fields: [resumeId], references: [resumeId], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@index([order])
+  @@map("interests")
+}
+
+// ============================================================
+// REFERENCES
+// ============================================================
+
+model ResumeReference {
+  id Int @id @default(autoincrement())
+  referenceId String @unique @default(uuid()) @db.Uuid
+
+  resumeId String @db.Uuid
+
+  name String
+  position String?
+  company String?
+  
+  email String?
+  phone String?
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  resume Resume @relation(fields: [resumeId], references: [resumeId], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@index([order])
+  @@map("references")
 }
